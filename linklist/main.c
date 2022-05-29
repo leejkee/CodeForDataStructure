@@ -2,7 +2,7 @@
  * @Author: leejkee
  * @FilePath: \linklist\main.c
  * @Date: 2022-05-28 19:38:38
- * @LastEditTime: 2022-05-29 00:05:05
+ * @LastEditTime: 2022-05-29 17:11:52
  * @Description: 顺序表
  */
 #include <stdio.h>
@@ -45,7 +45,7 @@ bool locateElem(Sequence sq, int e, int *num)
     {
         if (e == sq.data[i])
         {
-            *num = i;
+            *num = i+1;
             return true;
         }
     }
