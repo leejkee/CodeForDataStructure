@@ -60,10 +60,6 @@ bool insertElem(Sequence *sq, int i, int e)
     {
         return false;
     }
-    // if ()
-    // {
-    //     return false;
-    // }
     // 顺序表插入需要后移元素，所以从表尾巴开始移动，data[i-1]到data[j]都需要移动
     for (int j = sq->length-1 ; j >= i-1; j--)
     {
@@ -110,7 +106,7 @@ int main()
     printf("insert 20 numbers to the table.\n");
 
     printTable(*table);
-
+    // 如果查找不到会输出提示语，查找不到不输出查询结果需要将查询结果加到else中，这里略去
     if (getElem(*table, 5, r) == false)
     {
         printf("read the %dth number failed.\n", 5);
