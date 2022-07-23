@@ -12,8 +12,8 @@
 #define MAXSIZE 100
 typedef struct sequence
 {
-    int *data;
-    int length;
+    int *data;// 连续存储单元的首地址
+    int length;// 顺序表的当前存储元素个数
 } Sequence;
 
 // initialization
