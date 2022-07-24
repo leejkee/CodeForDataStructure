@@ -222,14 +222,10 @@ int main()
     printList(*listEg_1);
     printf("链表2中元素5被删去:\n");
     printList(*listEg_2);
-
     // 尾插法创建表3，并和表2合并
     mergeList(listEg_2, listEg_3);
     printf("合并后链表2:\n");
     printList(*listEg_2);
-    // 验证eg3已经释放
-    if(!listEg_3){
-        printf("listEg_3已经释放\n");
-    }
+
     return 0;
 }
