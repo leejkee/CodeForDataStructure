@@ -25,7 +25,11 @@ Sequence *init()
     p->length = 0;
     return p;
 }
-
+void delSeq(Sequence *L)
+{
+    free(L->data);
+    free(L);
+}
 // get the ith data
 // 找出第i个数，i不合法则返回false，数值存储到数组result中
 bool getElem(Sequence sq, int i, int *pe)
@@ -122,7 +126,7 @@ int main()
     {
         printf("insert %d before the item %d failed.\n", 76, 12);
     }
-    
+
     printTable(*table);
     // delete
     printf("delete:\n");
@@ -130,8 +134,8 @@ int main()
     {
         printf("delete the %dth item failed.\n", 12);
     }
-
     printTable(*table);
+    delSeq(table);
     return 0;
 }
 

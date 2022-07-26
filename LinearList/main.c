@@ -47,6 +47,31 @@ linearList *initEmpty()
     return L;
 }
 
+void delNode(Node *N)
+{
+    if (N == NULL)
+    {
+        return;
+    }
+    else{
+        free(N);
+    }
+}
+void delList(linearList *L)
+{
+    if (L == NULL)
+    {
+        return;
+    }
+    Node *p = L->head, *q = NULL;
+    while (p != NULL)
+    {
+        q = p->next;
+        delNode(p);
+        p = q;
+    }
+    free(L);
+}
 // 依次输出链表数值
 void printList(linearList list)
 {
@@ -150,8 +175,10 @@ void mergeList(linearList *la, linearList *lb)
     // 两表之一已经全部合并，现在连接未完全合并的链表的剩余结点到la
     pc->next = pa ? pa : pb;
     la->tail = pa ? la->tail : lb->tail;
-    free(lb->head);
-    free(lb);
+    // free(lb->head);
+    // free(lb);
+    lb->head->next = NULL;
+    delList(lb);
 }
 
 // 一个简单的实例让上面的函数执行结果可视化
@@ -226,6 +253,7 @@ int main()
     mergeList(listEg_2, listEg_3);
     printf("合并后链表2:\n");
     printList(*listEg_2);
-
+    delList(listEg_1);
+    delList(listEg_2);
     return 0;
 }
