@@ -1,103 +1,156 @@
-/* 一元多项式的相加和相乘运算 */
-// 定义结构->初始化操作->free操作->基本操作->问题解决
-
+// 先写main函数的大框架，再去根据需要写函数。
+// 多项式的存储结构
 #include <stdio.h>
 #include <stdlib.h>
+typedef struct term *polynomial;
+struct term
+{
+    float coef;
+    int exp;
+    polynomial next;
+};
+// 用于存储测试数据的数组
+typedef struct num {
+    float *coef;
+    int *exp;
+    int length;
+}Num;
 
-// 定义多项式节点
-typedef struct node
+// 测试数据：
+// 多项式1:  3.1x^(-2) + 2.0x^1    + 1.0x^2 - 2.5x^4 + 3.0x^5
+// 多项式2:  2.0x^(-3) - 1.0x^(-1) + 4.0    + 1.0x^1 - 1.0x^2 + 1.5x^4 + 1.0x^5
+int main()
 {
-    float coef; // 系数
-    int expo;   // 指数
-    struct node *next;
-} Term;
-// 定义多项式，包含一个指向头节点的指针，一个指向尾节点的指针
-typedef struct
-{
-    Term *head;
-    Term *tail;
-} polynomial;
-
-// 生成一个带头节点的空多项式，其中头节点不存储项，系数设置为0，指数设置为-1，尾指针初始指向头节点
-polynomial *initPoly()
-{
-    polynomial *L = (polynomial *)malloc(sizeof(polynomial));
-    L->head = (Term *)malloc(sizeof(Term));
-    L->head->coef = 0;
-    L->head->expo = -1;
-    L->head->next = NULL;
-    L->tail = L->head;
-    return L;
+    // 函数声明
+    void initPoly(polynomial L, Num num);
+    void printPoly(polynomial poly);
+    void insertTerm(float coef, int exp, polynomial L);
+    void delPoly(polynomial L);
+    polynomial sumPoly(polynomial L1, polynomial L2);
+    polynomial multPoly(polynomial L1, polynomial L2);
+    // 编写测试数据
+    Num number_1, number_2;
+    // float coef_1[5] = {3.1, 2.0, 1.0, -2.5, 3.0};
+    // int expo_1[5] = {-2, 1, 2, 4, 5};
+    // float coef_2[7] = {2.0, -1.0, 4.0, 1.0, -1.0, 1.5, 1.0};
+    // int expo_2[7] = {-3, -1, 0, 1, 2, 4, 5};
+    float coef_1[1] = {0};
+    int expo_1[1] = {0};
+    float coef_2[1] = {0};
+    int expo_2[1] = {0};
+    number_1.coef = coef_1;
+    number_1.exp = expo_1;
+    number_1.length = 1;
+    number_2.coef = coef_2;
+    number_2.exp = expo_2;
+    number_2.length = 1;
+    // 多项式定义
+    polynomial poly_1 = (polynomial)malloc(sizeof(struct term));
+    polynomial poly_2 = (polynomial)malloc(sizeof(struct term));
+    polynomial poly_sum, poly_mult;
+    // 多项式初始化
+    initPoly(poly_1, number_1);
+    initPoly(poly_2, number_2);
+    insertTerm(0,0,poly_1);
+    // 输出
+    printPoly(poly_1);
+    printPoly(poly_2);
+    // 多项式相加
+    printf("相加结果 \n");
+    poly_sum = sumPoly(poly_1, poly_2);
+    printPoly(poly_sum);
+    printf("相乘结果 \n");
+    poly_mult = multPoly(poly_1, poly_2);
+    printPoly(poly_mult);
+    delPoly(poly_1);
+    delPoly(poly_2);
+    delPoly(poly_mult);
+    delPoly(poly_sum);
+    return 0;
 }
-// 初始化项，返回指向系数为coef，指数为expo的项的指针
-Term *initTerm(float coef, int expo)
+// 使用给定的数值，导入多项式的各项
+void initPoly(polynomial L, Num num)
 {
-    Term *newNode = (Term *)malloc(sizeof(Term));
-    newNode->coef = coef;
-    newNode->expo = expo;
-    newNode->next = NULL;
-    return newNode;
+    void insertTerm(float coef, int exp, polynomial L);
+    // 头节点不存储数据
+    L->coef = 0;
+    L->exp = 0;
+    L->next = NULL;
+    for (int i = 0; i < num.length; ++i)
+    {
+        insertTerm(num.coef[i], num.exp[i], L);
+    }
 }
-
-// 释放节点的内存
-void delTerm(Term *Node)
+// 向多项式中插入新项，并按照插入项的指数和多项式中项指数大小关系作插入，合并或者合并系数为0作删除
+void insertTerm(float coef, int exp, polynomial L)
 {
-    if (Node == NULL)
+    // 系数为0的项插入无意义，直接退出
+    if (coef == 0)
     {
         return;
     }
-    free(Node);
-}
-
-// 释放多项式的内存，由于在初始化时申请了头节点，所以释放要从头节点开始释放，先释放全部节点的空间，再释放多项式本身的内存
-void delPoly(polynomial *L)
-{
-    if (L == NULL)
+    polynomial pnew = (polynomial)malloc(sizeof(struct term));
+    // p作遍历指针，front作p前面的指针，用于删除操作
+    polynomial p = L->next, front = L;
+    pnew->coef = coef;
+    pnew->exp = exp;
+    pnew->next = NULL;
+    // L为空，直接插入表尾
+    if (L->next == NULL)
     {
-        return;
+        L->next = pnew;
     }
-    Term *p = L->head, *q = NULL;
-    while (p != NULL)
+    else // L不为空，说明表内有元素，需要将pnew的指数和多项式中各项指数比较，确定插入的位置，如果找到有指数相等的项，还要进行合并操作
     {
-        q = p->next;
-        delTerm(p);
-        p = q;
-    }
-    free(L);
-}
-
-// 向多项式中新增一个项
-void insertTerm(polynomial *L, float coef, int expo)
-{
-    Term *q = initTerm(coef, expo);
-    // 为了保证是按照指数从小到大排序，采用尾插法进行插入新节点
-    L->tail->next = q;
-    L->tail = q;
-}
-
-// 数组存储测试数据导入多项式
-void insertPoly(polynomial *L, float *coef, int *expo, int num)
-{
-    float *p = coef;
-    int *q = expo;
-    while (num--)
-    {
-        insertTerm(L, *p, *q);
-        p++;
-        q++;
+        while (p != NULL)
+        {
+            if (p->exp < pnew->exp) // p指向节点的指数较小，说明任需要向后确认pnew的插入位置
+            {
+                p = p->next;
+                front = front->next;
+            }
+            else if (p->exp == pnew->exp) // p指向节点的指数和pnew指向节点的指数相等，进行合并操作
+            {
+                p->coef += pnew->coef;
+                // 系数和为0需要删去原节点，不为0则不用，不过最终都需要释放pnew指向内存
+                if (p->coef == 0)
+                {
+                    front->next = p->next;
+                    free(p);
+                    free(pnew);
+                }
+                else
+                {
+                    free(pnew);
+                }
+                return;
+            }
+            else if (p->exp > pnew->exp) // p指向节点指数已经大于pnew指数，说明插入位置就是p指向节点前面
+            {
+                pnew->next = p;
+                front->next = pnew;
+                return;
+            }
+        }
+        front->next = pnew; // 如果没有return结束，说明上面的while循环自然结束，也就是说至始至终p指向的节点指数都比pnew指向节点指数小，需要在结尾插入
     }
 }
 
 // 输出多项式
-void printPoly(polynomial poly)
+void printPoly(polynomial L)
 {
-    Term *p = poly.head->next;
-    printf("\nPolynomial:\n");
+    printf("Polynomial:\n");
+    if (L->next == NULL)// 为空则输出单个0即可
+    {
+        printf("0\n");
+        return;
+    }
+    polynomial p = L->next;
     while (p != NULL)
     {
-        printf("(%.1f)x^(%d)", p->coef, p->expo);
+        printf("(%.1f)x^(%d)", p->coef, p->exp);
         p = p->next;
-        if (!p)
+        if (p == NULL)
         {
             break;
         }
@@ -106,123 +159,72 @@ void printPoly(polynomial poly)
     printf("\n");
 }
 
-// 两个多项式相加
-// 思路：对应比较项指数大小，三种情况：
-// 1）1式大于2式，取2式项先导入，同时2式遍历指针后移与1式继续比较指数
-// 2）1式小于2式，则取1式。。。
-// 3）两式项指数相等，则合并，系数相加，并删去一个节点，若系数和为0则同时后移遍历指针的同时释放节点
-// 测试数据：
-// 多项式1:  3.1       + 2.0x^1    + 1.0x^2 - 2.5x^4 + 3.0x^6
-// 多项式2:  2.0x^(-3) - 1.0x^(-1) + 4.0    + 1.0x^1 - 1.0x^2 + 1.5x^4 + 1.0x^5
-void sumPoly(polynomial *L1, polynomial *L2)
+// 相加，返回指向结果多项式头节点的指针
+polynomial sumPoly(polynomial L1, polynomial L2)
 {
-    // 最终多项式合并到1式，结束后free(L2)
-    int compare(int a, int b);
-    Term *p1 = L1->head->next, *p2 = L2->head->next, *pNew = L1->head, *pTemp = NULL;
-    while (p1 && p2)
+    polynomial p1 = L1->next, p2 = L2->next;
+    polynomial Lsum = (polynomial)malloc(sizeof(struct term));
+    Lsum->coef = 0;
+    Lsum->exp = 0;
+    Lsum->next = NULL;
+    // 指数小的项插入L3，插入项的多项式遍历指针后移
+    while(p1 && p2)
     {
-        switch (compare(p1->expo, p2->expo))
+        if (p1->exp <= p2->exp)
         {
-        case 1:
-        { // p1>p2
-            pNew->next = p2;
-            pNew = p2;
-            p2 = p2->next;
-            break;
-        }
-        case -1:
-        { // p1<p2
-            pNew->next = p1;
-            pNew = p1;
+            insertTerm(p1->coef, p1->exp, Lsum);
             p1 = p1->next;
-            break;
         }
-        case 0:
-        { // p1=p2
-            if (0 == p1->coef + p2->coef)
-            {
-                pTemp = p1;
-                p1 = p1->next;
-                delTerm(pTemp);
-                pTemp = p2;
-                p2 = p2->next;
-                delTerm(pTemp);
-            }
-            else
-            {
-                p1->coef = p1->coef + p2->coef;
-                pNew->next = p1;
-                pNew = p1;
-                p1 = p1->next;
-                pTemp = p2;
-                p2 = p2->next;
-                delTerm(pTemp);
-            }
-            break;
-        }
-        default:
-            break;
+        else if (p1->exp > p2->exp)
+        {
+            insertTerm(p2->coef, p2->exp, Lsum);
+            p2 = p2->next;
         }
     }
-    pNew->next = p1 ? p1 : p2;
-    L2->head->next = NULL;
-    delPoly(L2);
+    while (p1 != NULL)
+    {
+        insertTerm(p1->coef, p1->exp, Lsum);
+        p1 = p1->next;
+    }
+    while (p2 != NULL)
+    {
+        insertTerm(p2->coef, p2->exp, Lsum);
+        p2 = p2->next;
+    }
+    return Lsum;
 }
 
-int compare(int a, int b)
+// 多项式相乘，并返回结果多项式的头节点指针
+polynomial multPoly(polynomial L1, polynomial L2)
 {
-    if (a > b)
+    polynomial p1 = L1->next, p2 = L2->next;
+    polynomial Lm = (polynomial)malloc(sizeof(struct term));
+    Lm->coef = 0;
+    Lm->exp = 0;
+    Lm->next = NULL;
+    if (L1 == NULL || L2 == NULL)
     {
-        return 1;
+        return Lm;
     }
-    else if (a < b)
-    {
-        return -1;
+    else{
+        for (; p1 != NULL; p1 = p1->next)
+        {
+            for (p2 = L2->next; p2 != NULL; p2 = p2->next)
+            {
+                insertTerm(p1->coef * p2->coef, p1->exp+p2->exp, Lm);
+            }
+        }
     }
-    else
-    {
-        return 0;
-    }
+    return Lm;
 }
-// 测试数据：
-// 多项式1:  3.1       + 2.0x^1    + 1.0x^2 - 2.5x^4 + 3.0x^6
-// 多项式2:  2.0x^(-3) - 1.0x^(-1) + 4.0    + 1.0x^1 - 1.0x^2 + 1.5x^4 + 1.0x^5
-int main()
+
+void delPoly(polynomial L)
 {
-    float coef_1[5] = {3.1, 2.0, 1.0, -2.5, 3.0};
-    int expo_1[5] = {0, 1, 2, 4, 6};
-    float coef_2[7] = {2.0, -1.0, 4.0, 1.0, -1.0, 1.5, 1.0};
-    int expo_2[7] = {-3, -1, 0, 1, 2, 4, 5};
-
-    polynomial *polyEg_1 = initPoly();
-    polynomial *polyEg_2 = initPoly();
-    insertPoly(polyEg_1, coef_1, expo_1, 5);
-    insertPoly(polyEg_2, coef_2, expo_2, 7);
-    printPoly(*polyEg_1);
-    printPoly(*polyEg_2);
-    sumPoly(polyEg_1, polyEg_2);
-    printPoly(*polyEg_1);
-    delPoly(polyEg_1);
-    // delPoly(polyEg_2); 在sumPoly()已经free L2
-    return 0;
+    polynomial p = L, tmp = NULL;
+    while (p != NULL)
+    {
+        tmp = p;
+        p = p->next;
+        free(tmp);
+    }
 }
-
-// 输入数值，测试太麻烦
-// void addTerm(polynomial *L)
-// {
-//     int count = 0;
-//     float coef = 0;
-//     int expo = 0;
-//     printf("The number of Terms for this polynomial:");
-//     scanf(" %d", &count);
-//     printf("Init for Terms starts.\n");
-//     for (int i = 1; i <= count; i++)
-//     {
-//         printf("Term%d:\n", i);
-//         printf("coef: ");
-//         scanf(" %f", &coef);
-//         printf("expo: ");
-//         scanf(" %d", &expo);
-//         insertOrder(L, coef, expo);
-//     }
-// }
